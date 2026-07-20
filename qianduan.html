@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>气相色谱快速抢答PK赛</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: linear-gradient(145deg, #0b1a2e 0%, #1a2f44 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            margin: 0;
+        }
+        .game-container {
+            max-width: 880px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            padding: 24px 20px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #f0e9d8;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        h1 small {
+            font-size: 0.8rem;
+            background: #2d4b63;
+            padding: 6px 18px;
+            border-radius: 60px;
+            color: #cfecff;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #132433cc;
+            border-radius: 60px;
+            padding: 10px 20px;
+            margin-bottom: 16px;
+            color: #b4d0e6;
+            border: 1px solid #3a5a78;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            backdrop-filter: blur(4px);
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.92rem;
+        }
+        .status-item span {
+            background: #1d344b;
+            padding: 2px 14px;
+            border-radius: 40px;
+            color: #e5f0ff;
+            font-weight: 600;
+        }
+        .question-panel {
+            background: #1d3348dd;
+            border-radius: 32px;
+            padding: 24px 20px;
+            margin-bottom: 16px;
+            border-left: 6px solid #6ba6d9;
+            box-shadow: 0 8px 0 #0f1e2e;
+            backdrop-filter: blur(2px);
+        }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f2f6fc;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            min-height: 4rem;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .option-btn {
+            background: #273f58;
+            border: none;
+            border-radius: 60px;
+            padding: 14px 8px;
+            font-weight: 600;
+            color: #d6e6fa;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 0 #0e1b28;
+            cursor: pointer;
+            border: 1px solid #3d6080;
+            transition: all 0.06s ease;
+            text-align: center;
+        }
+        .option-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #0e1b28;
+        }
+        .option-btn.disabled {
+            opacity: 0.4;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0e1b28;
+            pointer-events: none;
+        }
+        .option-btn.enabled {
+            background: #2d4f6e;
+            border-color: #6ba6d9;
+            color: #ffffff;
+            cursor: pointer;
+            opacity: 1;
+        }
+        .option-btn.enabled:hover {
+            background: #3a6090;
+            border-color: #f5b042;
+        }
+
+        .buzz-area {
+            margin: 12px 0 18px;
+            padding: 14px 10px;
+            background: #0f1f2f88;
+            border-radius: 28px;
+            border: 1px solid #2f4b66;
+        }
+        .buzz-title {
+            text-align: center;
+            color: #8ab3d9;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        .buzz-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .buzz-btn {
+            background: #1d344b;
+            border: 2px solid #3a5a78;
+            border-radius: 20px;
+            padding: 16px 8px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #6a8faf;
+            cursor: not-allowed;
+            transition: 0.15s;
+            box-shadow: 0 4px 0 #0a1622;
+            text-align: center;
+            opacity: 0.5;
+            user-select: none;
+        }
+        .buzz-btn.active {
+            background: #2a4a6a;
+            border-color: #6ba6d9;
+            color: #e5f0ff;
+            cursor: pointer;
+            opacity: 1;
+            box-shadow: 0 4px 0 #0f202f;
+        }
+        .buzz-btn.active:hover {
+            background: #3a6090;
+            border-color: #f5b042;
+            transform: scale(1.02);
+        }
+        .buzz-btn.active:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #0f202f;
+        }
+        .buzz-btn.winner {
+            background: #f5b042;
+            border-color: #ffd966;
+            color: #1a2f44;
+            box-shadow: 0 0 30px #f5b04288;
+            animation: pulse-glow 0.6s ease infinite alternate;
+            opacity: 1;
+        }
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 20px #f5b04255; }
+            to { box-shadow: 0 0 50px #f5b042cc; }
+        }
+        .buzz-btn.locked {
+            background: #1d2a3a;
+            border-color: #2a3a4a;
+            color: #4a5a6a;
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+        .buzz-btn .sub {
+            font-size: 0.65rem;
+            font-weight: 400;
+            display: block;
+            color: #8ab3d9;
+        }
+        .buzz-btn.winner .sub {
+            color: #1a2f44;
+        }
+
+        .group-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 10px;
+            margin: 12px 0 16px;
+        }
+        .group-card {
+            background: #1f3851;
+            border-radius: 28px;
+            padding: 10px 6px;
+            text-align: center;
+            border: 1px solid #3f6383;
+            box-shadow: 0 6px 0 #0d1f2f;
+            color: #dceaf5;
+            transition: 0.15s;
+        }
+        .group-card.active {
+            border: 2px solid #fecb6e;
+            background: #2d4f6e;
+            box-shadow: 0 0 20px #f5b34255;
+        }
+        .group-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .group-score {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #fadf9e;
+            line-height: 1.2;
+        }
+        .group-streak {
+            font-size: 0.65rem;
+            background: #0d1f2f;
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 40px;
+            color: #b3d6ff;
+        }
+
+        .control-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0 10px;
+            justify-content: center;
+        }
+        .btn {
+            background: #2c4b68;
+            border: none;
+            border-radius: 60px;
+            padding: 12px 28px;
+            font-weight: 700;
+            color: white;
+            font-size: 1rem;
+            box-shadow: 0 6px 0 #0f202f;
+            cursor: pointer;
+            border: 1px solid #4a7297;
+            flex: 1 1 auto;
+            min-width: 110px;
+            transition: 0.06s linear;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #0f202f;
+        }
+        .btn-primary {
+            background: #e6a43a;
+            border-color: #f5c76b;
+            color: #1d2f3f;
+            box-shadow: 0 6px 0 #8f641f;
+        }
+        .btn-danger {
+            background: #b34a4a;
+            border-color: #d97a7a;
+            box-shadow: 0 6px 0 #712e2e;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 #0f202f;
+            pointer-events: none;
+        }
+
+        .log-area {
+            background: #0b1927cc;
+            border-radius: 24px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #b2cfec;
+            border: 1px solid #2f4b66;
+            max-height: 110px;
+            overflow-y: auto;
+            backdrop-filter: blur(2px);
+        }
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #1f3853;
+        }
+        .highlight {
+            color: #fedb87;
+            font-weight: 600;
+        }
+        .punish-banner {
+            background: #712e2ecc;
+            border-radius: 60px;
+            padding: 8px 16px;
+            font-weight: 600;
+            color: #ffd9b0;
+            margin: 6px 0 10px;
+            text-align: center;
+            border-left: 6px solid #f57c7c;
+            backdrop-filter: blur(2px);
+            display: none;
+        }
+        @media (max-width: 500px) {
+            .question-text { font-size: 1.05rem; }
+            .group-grid { grid-template-columns: repeat(3, 1fr); }
+            .options { grid-template-columns: 1fr 1fr; }
+            .buzz-grid { grid-template-columns: repeat(3, 1fr); }
+            .buzz-btn { font-size: 0.95rem; padding: 12px 4px; }
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #5b7b99;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>
+            ⚗️ 气相色谱快速抢答PK赛
+            <small>6组 · 抢答按钮</small>
+        </h1>
+
+        <div class="status-bar">
+            <div class="status-item">📌 题目 <span id="questionIndex">1/10</span></div>
+            <div class="status-item">⏳ 倒计时 <span id="timerDisplay">5</span>s</div>
+            <div class="status-item">🏆 抢答权 <span id="turnIndicator">⚪ 无</span></div>
+        </div>
+
+        <div class="question-panel">
+            <div class="question-text" id="questionText">点击「开始答题」启动PK赛</div>
+            <div class="options" id="optionsContainer">
+                <button class="option-btn disabled" data-index="0">A.</button>
+                <button class="option-btn disabled" data-index="1">B.</button>
+                <button class="option-btn disabled" data-index="2">C.</button>
+                <button class="option-btn disabled" data-index="3">D.</button>
+                <button class="option-btn disabled" data-index="4" style="display:none;">E.</button>
+            </div>
+        </div>
+
+        <div class="buzz-area">
+            <div class="buzz-title">⚡ 点击按钮抢答 ⚡</div>
+            <div class="buzz-grid" id="buzzGrid">
+                <button class="buzz-btn locked" data-group="0">A组 <span class="sub">抢!</span></button>
+                <button class="buzz-btn locked" data-group="1">B组 <span class="sub">抢!</span></button>
+                <button class="buzz-btn locked" data-group="2">C组 <span class="sub">抢!</span></button>
+                <button class="buzz-btn locked" data-group="3">D组 <span class="sub">抢!</span></button>
+                <button class="buzz-btn locked" data-group="4">E组 <span class="sub">抢!</span></button>
+                <button class="buzz-btn locked" data-group="5">F组 <span class="sub">抢!</span></button>
+            </div>
+        </div>
+
+        <div class="group-grid" id="groupGrid"></div>
+
+        <div id="punishBanner" class="punish-banner">⚠️ 惩罚：大喊“我再也不搞混载气了！”</div>
+
+        <div class="control-bar">
+            <button class="btn btn-primary" id="startRoundBtn">🚀 开始答题</button>
+            <button class="btn btn-danger" id="resetGameBtn">🔄 重置</button>
+        </div>
+
+        <div class="log-area" id="logArea">
+            <div class="log-entry">📢 欢迎！点击「开始答题」，倒计时结束后点击小组抢答按钮</div>
+        </div>
+        <div class="footer">🏅 获胜组获得「色谱快枪手」+ 虚拟进样器勋章</div>
+    </div>
+
+    <script>
+        (function() {
+            // ========== 气相色谱专属题库（10题） ==========
+            const QUESTION_BANK = [{
+                q: '气相色谱仪中实现食品样品各组分分离的核心关键部件为（  ）',
+                options: ['A. 气化衬管', 'B. 色谱柱', 'C. FID检测器', 'D. 稳压阀', 'E. 柱温加热丝'],
+                answer: 1,
+                hasE: true
+            }, {
+                q: '下列组件中，不属于气相色谱气路净化装置的是（  ）',
+                options: ['A. 除水分子筛管', 'B. 脱氧活性炭管', 'C. 除烃净化管', 'D. 分流平板', 'E. 气体过滤器'],
+                answer: 3,
+                hasE: true
+            }, {
+                q: '气化室衬管的主要作用是（  ）',
+                options: ['A. 调节载气流速压力', 'B. 承接样品、防止高沸点残渣污染色谱柱', 'C. 对分离后的组分进行信号响应', 'D. 控制色谱柱程序升温速率',
+                    'E. 储存高纯载气气源'
+                ],
+                answer: 1,
+                hasE: true
+            }, {
+                q: '气相色谱温控系统需独立控温的三个区域是（  ）',
+                options: ['A. 钢瓶、净化器、色谱柱', 'B. 气化室、柱温箱、检测器', 'C. 分流阀、衬管、毛细管柱', 'D. 氢气路、空气路、载气路',
+                    'E. 采集板、工作站、信号放大器'
+                ],
+                answer: 1,
+                hasE: true
+            }, {
+                q: '在食品气相检测中，氢火焰离子化检测器（FID）最适合测定下列哪一类物质（  ）',
+                options: ['A. 有机氯农药、含卤素有机污染物', 'B. 含碳氢的有机化合物（油脂、醇类、农残、溶剂）', 'C. 永久性气体、无机气体（氢气、氧气、氮气）',
+                    'D. 重金属元素、无机金属离子', 'E. 放射性卤素衍生物'
+                ],
+                answer: 1,
+                hasE: true
+            }, {
+                q: '气相色谱进样口隔垫（硅胶密封垫）的核心作用不包括（  ）',
+                options: ['A. 穿刺进样时密封气化室，防止载气泄漏', 'B. 隔绝外部空气进入管路，避免氧气氧化色谱柱', 'C. 缓冲进样针穿刺，保护衬管与进样口内部结构',
+                    'D. 吸附样品中高沸点杂质，净化待测组分', 'E. 维持气化室内稳定压力，保证分流效果稳定'
+                ],
+                answer: 3,
+                hasE: true
+            }, {
+                q: '气相色谱分析中，保留时间（tR）是指（  ）',
+                options: ['A. 组分从进样到出现色谱峰最大值所需时间', 'B. 组分在固定相中停留的时间', 'C. 死时间', 'D. 组分从进样到开始出峰的时间',
+                    'E. 色谱峰宽度'
+                ],
+                answer: 0,
+                hasE: true
+            }, {
+                q: '气相色谱法分离原理属于（  ）',
+                options: ['A. 吸附色谱', 'B. 分配色谱', 'C. 离子交换色谱', 'D. 凝胶色谱', 'E. 亲和色谱'],
+                answer: 1,
+                hasE: true
+            }, {
+                q: '在气相色谱中，柱温升高，则（  ）',
+                options: ['A. 保留时间增加', 'B. 保留时间减少', 'C. 色谱峰变宽', 'D. 分离度增加', 'E. 理论塔板数减少'],
+                answer: 1,
+                hasE: true
+            }, {
+                q: '气相色谱检测器中，属于通用型检测器的是（  ）',
+                options: ['A. FID', 'B. ECD', 'C. TCD', 'D. FPD', 'E. NPD'],
+                answer: 2,
+                hasE: true
+            }];
+
+            // ---------- 6个组 ----------
+            let groups = [
+                { id: 0, name: 'A组', score: 0, streak: 0 },
+                { id: 1, name: 'B组', score: 0, streak: 0 },
+                { id: 2, name: 'C组', score: 0, streak: 0 },
+                { id: 3, name: 'D组', score: 0, streak: 0 },
+                { id: 4, name: 'E组', score: 0, streak: 0 },
+                { id: 5, name: 'F组', score: 0, streak: 0 }
+            ];
+
+            let currentQuestionIndex = 0;
+            let roundState = 'idle';
+            let countdownTimer = null;
+            let answerTimer = null;
+            let canBuzz = false;
+            let isAnswered = false;
+            let buzzGroupId = null;
+
+            const STREAK_BONUS = 5,
+                BASE_SCORE = 10,
+                PENALTY = -3;
+
+            // DOM
+            const questionText = document.getElementById('questionText');
+            const optionsContainer = document.getElementById('optionsContainer');
+            const groupGrid = document.getElementById('groupGrid');
+            const buzzGrid = document.getElementById('buzzGrid');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const turnIndicator = document.getElementById('turnIndicator');
+            const logArea = document.getElementById('logArea');
+            const punishBanner = document.getElementById('punishBanner');
+            const questionIndexSpan = document.getElementById('questionIndex');
+            const startBtn = document.getElementById('startRoundBtn');
+            const resetBtn = document.getElementById('resetGameBtn');
+
+            const buzzBtns = buzzGrid.querySelectorAll('.buzz-btn');
+            const optionBtns = optionsContainer.querySelectorAll('.option-btn');
+
+            function log(msg, highlight = false) {
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                if (highlight) entry.innerHTML = `<span class="highlight">${msg}</span>`;
+                else entry.textContent = msg;
+                logArea.appendChild(entry);
+                logArea.scrollTop = logArea.scrollHeight;
+                if (logArea.children.length > 50) logArea.removeChild(logArea.firstChild);
+            }
+
+            function renderGroups() {
+                groupGrid.innerHTML = '';
+                groups.forEach(g => {
+                    const card = document.createElement('div');
+                    card.className = 'group-card' + (buzzGroupId === g.id ? ' active' : '');
+                    card.innerHTML = `
+                        <div class="group-name">${g.name}</div>
+                        <div class="group-score">${g.score}</div>
+                        <div class="group-streak">🔥 ${g.streak} 连击</div>
+                    `;
+                    groupGrid.appendChild(card);
+                });
+            }
+
+            function updateBuzzButtons(state) {
+                buzzBtns.forEach(btn => {
+                    const gId = parseInt(btn.dataset.group, 10);
+                    btn.classList.remove('active', 'winner', 'locked');
+                    if (state === 'idle' || state === 'countdown') {
+                        btn.classList.add('locked');
+                        btn.disabled = true;
+                    } else if (state === 'buzzing') {
+                        btn.classList.add('active');
+                        btn.disabled = false;
+                    } else if (state === 'answered') {
+                        if (buzzGroupId === gId) {
+                            btn.classList.add('winner');
+                            btn.disabled = true;
+                        } else {
+                            btn.classList.add('locked');
+                            btn.disabled = true;
+                        }
+                    } else {
+                        btn.classList.add('locked');
+                        btn.disabled = true;
+                    }
+                });
+            }
+
+            function updateOptions(enabled) {
+                optionBtns.forEach(btn => {
+                    btn.classList.remove('enabled', 'disabled');
+                    if (enabled) {
+                        btn.classList.add('enabled');
+                    } else {
+                        btn.classList.add('disabled');
+                    }
+                });
+            }
+
+            function resetRoundState() {
+                if (countdownTimer) { clearInterval(countdownTimer);
+                    countdownTimer = null; }
+                if (answerTimer) { clearInterval(answerTimer);
+                    answerTimer = null; }
+                roundState = 'idle';
+                canBuzz = false;
+                buzzGroupId = null;
+                isAnswered = false;
+                timerDisplay.textContent = '5';
+                turnIndicator.textContent = '⚪ 无';
+                punishBanner.style.display = 'none';
+                updateOptions(false);
+                startBtn.disabled = false;
+                updateBuzzButtons('idle');
+                renderGroups();
+            }
+
+            function displayQuestion(index) {
+                const q = QUESTION_BANK[index];
+                if (!q) {
+                    questionText.textContent = '🎉 所有题目已完成！点击重置继续。';
+                    optionBtns.forEach((btn, i) => {
+                        btn.textContent = ['A', 'B', 'C', 'D', 'E'][i] + '. —';
+                        btn.style.display = 'none';
+                    });
+                    return;
+                }
+                questionText.textContent = q.q;
+                const hasE = q.hasE || false;
+                optionBtns.forEach((btn, i) => {
+                    if (i < q.options.length) {
+                        btn.textContent = q.options[i];
+                        btn.style.display = '';
+                        btn.dataset.index = i;
+                    } else {
+                        btn.style.display = 'none';
+                    }
+                });
+                if (!hasE) {
+                    optionBtns.forEach(btn => {
+                        if (btn.dataset.index == 4) btn.style.display = 'none';
+                    });
+                } else {
+                    optionBtns.forEach(btn => {
+                        if (btn.dataset.index == 4) btn.style.display = '';
+                    });
+                }
+                questionIndexSpan.textContent = `${index+1}/${QUESTION_BANK.length}`;
+            }
+
+            function showPunish() {
+                punishBanner.style.display = 'block';
+                setTimeout(() => { punishBanner.style.display = 'none'; }, 4000);
+            }
+
+            function handleAnswer(groupId, selectedIdx) {
+                if (isAnswered || roundState !== 'answering') return;
+                isAnswered = true;
+                canBuzz = false;
+                const q = QUESTION_BANK[currentQuestionIndex];
+                const correct = q.answer === selectedIdx;
+                const group = groups.find(g => g.id === groupId);
+                if (!group) return;
+
+                if (correct) {
+                    let addScore = BASE_SCORE;
+                    group.streak += 1;
+                    if (group.streak >= 3) {
+                        addScore += STREAK_BONUS;
+                        log(`🔥 ${group.name} 连续3题! 额外+${STREAK_BONUS} 热手感!`, true);
+                    }
+                    group.score += addScore;
+                    log(`✅ ${group.name} 答对! +${addScore} 分 (连击${group.streak})`, true);
+                    log(`🏅 ${group.name} 获得「色谱快枪手」+ 虚拟进样器勋章`, true);
+                } else {
+                    group.streak = 0;
+                    group.score += PENALTY;
+                    log(`❌ ${group.name} 答错 -3 分 (惩罚)`, true);
+                    showPunish();
+                }
+                renderGroups();
+                roundState = 'answered';
+                turnIndicator.textContent = correct ? '✅ 已答' : '❌ 答错';
+                startBtn.disabled = false;
+                updateOptions(false);
+                updateBuzzButtons('answered');
+
+                setTimeout(() => {
+                    if (currentQuestionIndex < QUESTION_BANK.length - 1) {
+                        currentQuestionIndex++;
+                        displayQuestion(currentQuestionIndex);
+                        resetRoundState();
+                        log(`📌 进入第 ${currentQuestionIndex+1} 题`);
+                    } else {
+                        log('🏁 所有题目结束！查看最终排名', true);
+                        resetRoundState();
+                        questionText.textContent = '🏁 对战结束！点击重置再玩一局';
+                    }
+                }, 1500);
+            }
+
+            buzzBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (roundState !== 'buzzing' || !canBuzz || isAnswered) {
+                        log('⏳ 当前不可抢答', true);
+                        return;
+                    }
+                    const gId = parseInt(this.dataset.group, 10);
+                    canBuzz = false;
+                    buzzGroupId = gId;
+                    const group = groups.find(g => g.id === gId);
+                    turnIndicator.textContent = `🏃 ${group.name} 抢答`;
+                    log(`⚡ ${group.name} 抢到答题权!`, true);
+                    roundState = 'answering';
+                    updateOptions(true);
+                    updateBuzzButtons('answered');
+                    renderGroups();
+
+                    let answerCount = 10;
+                    answerTimer = setInterval(() => {
+                        answerCount -= 1;
+                        if (answerCount <= 0) {
+                            clearInterval(answerTimer);
+                            answerTimer = null;
+                            if (!isAnswered && roundState === 'answering') {
+                                const g = groups.find(gr => gr.id === buzzGroupId);
+                                if (g) {
+                                    g.score += PENALTY;
+                                    g.streak = 0;
+                                    log(`⏰ ${g.name} 超时 -3 分`, true);
+                                    renderGroups();
+                                }
+                                turnIndicator.textContent = '⏰ 超时';
+                                roundState = 'answered';
+                                startBtn.disabled = false;
+                                updateOptions(false);
+                                updateBuzzButtons('answered');
+                                setTimeout(() => {
+                                    if (currentQuestionIndex < QUESTION_BANK.length - 1) {
+                                        currentQuestionIndex++;
+                                        displayQuestion(currentQuestionIndex);
+                                        resetRoundState();
+                                        log(`📌 进入第 ${currentQuestionIndex+1} 题`);
+                                    } else {
+                                        log('🏁 所有题目结束！', true);
+                                        resetRoundState();
+                                        questionText.textContent = '🏁 对战结束！点击重置再玩一局';
+                                    }
+                                }, 1000);
+                            }
+                        }
+                    }, 1000);
+                });
+            });
+
+            optionsContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('.option-btn');
+                if (!btn) return;
+                if (roundState !== 'answering' || buzzGroupId === null || isAnswered) {
+                    log('⏳ 请先抢答', true);
+                    return;
+                }
+                const selectedIdx = parseInt(btn.dataset.index, 10);
+                handleAnswer(buzzGroupId, selectedIdx);
+            });
+
+            function startCountdown() {
+                if (roundState !== 'idle' && roundState !== 'answered') return;
+                if (currentQuestionIndex >= QUESTION_BANK.length) {
+                    log('⛔ 题库已用完，重置后再开始', true);
+                    return;
+                }
+                resetRoundState();
+                displayQuestion(currentQuestionIndex);
+                let count = 5;
+                timerDisplay.textContent = count;
+                turnIndicator.textContent = '⏳ 倒计时';
+                startBtn.disabled = true;
+                roundState = 'countdown';
+                canBuzz = false;
+                updateOptions(false);
+                updateBuzzButtons('countdown');
+
+                countdownTimer = setInterval(() => {
+                    count -= 1;
+                    timerDisplay.textContent = count;
+                    if (count <= 0) {
+                        clearInterval(countdownTimer);
+                        countdownTimer = null;
+                        timerDisplay.textContent = '0';
+                        roundState = 'buzzing';
+                        canBuzz = true;
+                        turnIndicator.textContent = '🟢 点击抢答!';
+                        updateBuzzButtons('buzzing');
+                        log('🔔 抢答开始! 点击小组按钮抢答', true);
+                    }
+                }, 1000);
+            }
+
+            function resetGame() {
+                if (countdownTimer) clearInterval(countdownTimer);
+                if (answerTimer) clearInterval(answerTimer);
+                groups.forEach(g => { g.score = 0;
+                    g.streak = 0; });
+                currentQuestionIndex = 0;
+                resetRoundState();
+                displayQuestion(0);
+                renderGroups();
+                log('🔄 游戏已重置，分数归零');
+                questionIndexSpan.textContent = `1/${QUESTION_BANK.length}`;
+                punishBanner.style.display = 'none';
+                startBtn.disabled = false;
+                updateOptions(false);
+                updateBuzzButtons('idle');
+            }
+
+            startBtn.addEventListener('click', startCountdown);
+            resetBtn.addEventListener('click', resetGame);
+
+            renderGroups();
+            displayQuestion(0);
+            resetRoundState();
+            log('📋 已加载6个小组 (A~F组)');
+            log('📚 共10道气相色谱专属题目');
+            log('💡 倒计时结束后，点击小组按钮抢答，再点击选项作答');
+        })();
+    </script>
+</body>
+</html>
